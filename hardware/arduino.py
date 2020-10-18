@@ -1,10 +1,11 @@
 import serial
-dev = serial.Serial('COM4', 9600)
+import time 
+
+dev = serial.Serial('/dev/cu.usbmodem141101', 9600)
 data = []
+for i in range(10):
+    dev.write(b'L'); 
+    time.sleep(0.2)
+    dev.write(b'O'); 
+    time.sleep(0.2)
 
-for _ in range(10):
-    dev.write(b'2')
-    line = dev.readline()
-    data.append(line)
-
-print(data)

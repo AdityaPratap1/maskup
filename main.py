@@ -77,17 +77,14 @@ class MaskDetector():
             # faces at the same time rather than one-by-one predictions
             # in the above `for` loop
 
-            occupancy = controller.check_occupancy()
-
+            #print('OCC----------- = ',occupancy)
             # check if occupancy is reached
-            if occupancy < 3:
-                faces = np.array(faces, dtype="float32")
-                preds = _maskModel.predict(faces, batch_size=32)
+            faces = np.array(faces, dtype="float32")
+            preds = _maskModel.predict(faces, batch_size=32)
 
-            else:
-                tts = gtts.gTTS("Nut Overflow")
-                tts.save("nut.mp3")
-                playsound("nut.mp3")
+            #tts = gtts.gTTS("Nut Overflow")
+            #tts.save("nut.mp3")
+            #playsound("nut.mp3")
 
         # return a 2-tuple of the face locations and their corresponding
         # locations
@@ -99,7 +96,7 @@ detector = MaskDetector()
 controller = DoorController()
 vs = VideoStream(src=0).start()
 once = False
-
+maskWait = False
 # loop over the frames from the video stream
 while True:
     # grab the frame from the threaded video stream and resize it
@@ -114,27 +111,25 @@ while True:
     # loop over the detected face locations and their corresponding
     # locations
 
-    if len(preds) > 0 and not once:
+    if len(preds) > 0:
         mask, noMask = preds[0]
 
-        print('[+] Turning LED ' + ('on' if mask > noMask else 'off'))
-        once = True
+        occupancy = controller.check_occupancy()
+        print('BOOOO0=F',occupancy)
+        if occupancy < 3: 
 
-        if noMask > mask and not once:
+            if noMask > mask and not maskWait:
+                controller.dispenseMask()
+                controller.setLed(False)
+                maskWait = True
+                # send signal to the dispenser
 
-            _thread.start_new_thread(os.system, ('say', 'please put on a mask'))
-            controller.dispenseMask()
-            # send signal to the dispenser
+            elif mask > noMask and maskWait:
+                controller.setLed(True)
+                maskWait = False
 
-        elif mask > noMask and not once:
-            controller.sanitize()
-            reply = int(controller.reply_sanitize())
-            if reply == 1:
-                controller.setLed(1)
-
-    else:
+    if len(preds) == 0 and once:
         print('nothing seen, resetting')
-        once = False
 
     for (box, pred) in zip(locs, preds):
         # unpack the bounding box and predictions
