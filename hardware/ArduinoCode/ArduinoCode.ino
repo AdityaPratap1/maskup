@@ -1,6 +1,9 @@
 #include <hcsr04.h>
 #include <Servo.h>
 #define STEP 2
+#include <Servo.h>
+
+Servo myservo;  // create servo object to control a servo
 Servo arm;
 String incomingString = "";
 const int trig1 = 6;
@@ -26,7 +29,8 @@ void setup() {
   pinMode(trig2, OUTPUT);
   pinMode(echo2, INPUT);
 
-  arm.attach(10);
+//  arm.attach(10);
+  myservo.attach(10);
 
 
   Serial.begin(19200); // Baudrate to 19200
@@ -37,8 +41,11 @@ void setup() {
 }
 
 void loop() {
+  int pos = 0;
+  int popo = 180;
 
   while (Serial.available() > 0) {
+    if (Serial.available() > 0){
      char cmd = (char) Serial.read(); 
    if (cmd == 'L') {
       digitalWrite(13, HIGH);
@@ -47,10 +54,16 @@ void loop() {
    } else if (cmd == 'O') {
       Serial.print(occupancy); 
    } else if (cmd == 'M') {
-        arm.write(180);
-        delay(1000);
-        arm.write(0); 
-   }
+          for (pos = 0; pos <= 180000000; pos += 1) { // goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+         myservo.write(popo);              // tell servo to go to position in variable 'pos'
+  }
+        delay(400);
+   }else if(cmd == 'S'){
+    myservo.write(popo);
+    }
+    }
+    
     if (!entered) {
       distance1 = ultrasonicDistance(trig1, echo1);
     }
