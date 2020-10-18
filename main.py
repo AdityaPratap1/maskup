@@ -4,29 +4,30 @@ from imutils.video import VideoStream
 import numpy as np
 import tensorflow as tf
 import cv2
-import imutils 
+import imutils
+import gtts
 from hwutils import DoorController
-import os 
+from playsound import playsound
 import _thread
 
 # load our serialized face detector model from disk
 prototxtPath = r"face_detector/deploy.prototxt"
 weightsPath = r"face_detector/res10_300x300_ssd_iter_140000.caffemodel"
 _faceModel = cv2.dnn.readNet(prototxtPath, weightsPath)
-_maskModel = tf.keras.models.load_model('mask_detector.model', custom_objects=None, compile=True )
-    
+_maskModel = tf.keras.models.load_model('mask_detector.model', custom_objects=None, compile=True)
 
-class MaskDetector(): 
-    
-    def __init__(self): 
-            pass
+
+class MaskDetector():
+
+    def __init__(self):
+        pass
 
     def __call__(self, frame):
         # grab the dimensions of the frame and then construct a blob
         # from it
         (h, w) = frame.shape[:2]
         blob = cv2.dnn.blobFromImage(frame, 1.0, (224, 224),
-            (104.0, 177.0, 123.0))
+                                     (104.0, 177.0, 123.0))
 
         # pass the blob through the network and obtain the face detections
         _faceModel.setInput(blob)
@@ -75,13 +76,22 @@ class MaskDetector():
             # for faster inference we'll make batch predictions on *all*
             # faces at the same time rather than one-by-one predictions
             # in the above `for` loop
-            faces = np.array(faces, dtype="float32")
-            preds = _maskModel.predict(faces, batch_size=32)
-        
+
+            occupancy = 4
+
+            # check if occupancy is reached
+            if occupancy < 3:
+                faces = np.array(faces, dtype="float32")
+                preds = _maskModel.predict(faces, batch_size=32)
+
+            else:
+                tts = gtts.gTTS("Nut Overflow")
+                tts.save("nut.mp3")
+                playsound("nut.mp3")
+
         # return a 2-tuple of the face locations and their corresponding
         # locations
         return (locs, preds)
-
 
 
 print("[INFO] starting video stream...")
@@ -104,21 +114,28 @@ while True:
     # loop over the detected face locations and their corresponding
     # locations
 
-
-    if len(preds) > 0 and not once: 
+    if len(preds) > 0 and not once:
         mask, noMask = preds[0]
 
         print('[+] Turning LED ' + ('on' if mask > noMask else 'off'))
         once = True
-        #controller.setLED(mask > noMask)
 
-        if noMask > mask and not once: 
+        if noMask > mask and not once:
 
             _thread.start_new_thread(os.system, ('say', 'please put on a mask'))
-    else: 
+            controller.dispenseMask()
+            # send signal to the dispenser
+
+        elif mask > noMask and not once:
+            controller.sanitize()
+            reply = int(controller.reply_sanitize())
+            if reply == 1:
+                controller.setLed(1)
+
+    else:
         print('nothing seen, resetting')
         once = False
-    
+
     for (box, pred) in zip(locs, preds):
         # unpack the bounding box and predictions
         (startX, startY, endX, endY) = box
@@ -135,13 +152,13 @@ while True:
         # display the label and bounding box rectangle on the output
         # frame
         cv2.putText(frame, label, (startX, startY - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
         cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
-                
+
     # show the output frame
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
-        
+
     # if the `q` key was pressed, break from the loop
     if key == ord("q"):
         break
@@ -149,4 +166,3 @@ while True:
 # do a bit of cleanup
 cv2.destroyAllWindows()
 vs.stop()
-
