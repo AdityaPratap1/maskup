@@ -35,7 +35,7 @@ jupyterlab==2.2.8
 jupyterlab-pygments==0.1.2
 jupyterlab-server==1.2.0
 Keras-Applications @ file:///tmp/build/80754af9/keras-applications_1594366238411/work
-Keras-Preprocessing==1.1.0
+Keras-Preprocessing==1.1.2
 kiwisolver==1.2.0
 lazy-object-proxy==1.4.3
 Markdown @ file:///opt/concourse/worker/volumes/live/78511e82-5679-42c1-42a8-b983fac7e7ab/volume/markdown_1597433265500/work
@@ -75,8 +75,8 @@ requests==2.24.0
 scipy @ file:///opt/concourse/worker/volumes/live/7114cc5a-074a-43ee-4c3e-e15a7587e2c8/volume/scipy_1597719809786/work
 Send2Trash==1.5.0
 six==1.15.0
-tensorboard==2.0.0
-tensorflow==2.0.0
+tensorboard==2.3.0
+tensorflow==2.3.1
 tensorflow-estimator==2.0.0
 termcolor==1.1.0
 terminado==0.9.1
