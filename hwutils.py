@@ -1,7 +1,7 @@
 import serial
 
 class DoorController():
-    def __init__(self, port='/dev/ttyUSB0', baud=19200):
+    def __init__(self, port=2, baud=9600):
         print("[+] init door controller")
         self.ser = serial.Serial(port, baud)
 
@@ -21,4 +21,16 @@ class DoorController():
         return self.ser.read()
 
     def check_occupancy(self):
-        return self.ser.read()
+        # cmd = b'O'
+        # self.ser.write(cmd)
+        a = "L"
+        data = []
+        self.ser.write(a.encode())
+        init = str(self.ser.readline())
+        data.append(init)
+        while self.ser is not None:
+
+            data = str(self.ser.readline())
+            print(data)
+
+        return data

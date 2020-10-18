@@ -77,7 +77,7 @@ class MaskDetector():
             # faces at the same time rather than one-by-one predictions
             # in the above `for` loop
 
-            occupancy = 4
+            occupancy = controller.check_occupancy()
 
             # check if occupancy is reached
             if occupancy < 3:
