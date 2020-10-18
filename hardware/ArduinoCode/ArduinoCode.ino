@@ -1,6 +1,4 @@
 #include <hcsr04.h>
-
-
 #include <Servo.h>
 #define STEP 2
 Servo arm;
@@ -29,7 +27,7 @@ void setup() {
   pinMode(echo2, INPUT);
 
   arm.attach(10);
-  arm.write(180);
+
 
   Serial.begin(19200); // Baudrate to 19200
   for (int i = 0; i < 50; i++) {
@@ -41,6 +39,18 @@ void setup() {
 void loop() {
 
   while (Serial.available() > 0) {
+     char cmd = (char) Serial.read(); 
+   if (cmd == 'L') {
+      digitalWrite(13, HIGH);
+   } else if (cmd == 'l') {
+      digitalWrite(13, LOW);
+   } else if (cmd == 'O') {
+      Serial.print(occupancy); 
+   } else if (cmd == 'M') {
+        arm.write(180);
+        delay(1000);
+        arm.write(0); 
+   }
     if (!entered) {
       distance1 = ultrasonicDistance(trig1, echo1);
     }
@@ -88,7 +98,6 @@ void loop() {
       if (enterTime > exitTime) {
         Serial.println("exited");
         occupancy -= 1;
-
       }
       else {
         Serial.println("entered");
