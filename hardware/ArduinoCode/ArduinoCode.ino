@@ -1,17 +1,13 @@
 #include <hcsr04.h>
-#include <Servo.h>
 #define STEP 2
-#include <Servo.h>
 
-Servo myservo;  // create servo object to control a servo
-Servo arm;
 String incomingString = "";
 const int trig1 = 6;
 const int echo1 = 7;
 const int trig2 = 8;
 const int echo2 = 9;
 
-const int threshold1 = 40, threshold2 = 40;
+const int threshold1 = 80, threshold2 = 80;
 long avg1[50];
 long avg2[50];
 long FIRout1 = 0, FIRout2 = 0;
@@ -29,10 +25,6 @@ void setup() {
   pinMode(trig2, OUTPUT);
   pinMode(echo2, INPUT);
 
-//  arm.attach(10);
-  myservo.attach(10);
-
-
   Serial.begin(19200); // Baudrate to 19200
   for (int i = 0; i < 50; i++) {
     avg1[i] = 0;
@@ -41,28 +33,12 @@ void setup() {
 }
 
 void loop() {
-  int pos = 0;
-  int popo = 180;
-
-  while (Serial.available() > 0) {
-    if (Serial.available() > 0){
+   if (Serial.available() > 0){
      char cmd = (char) Serial.read(); 
-   if (cmd == 'L') {
-      digitalWrite(13, HIGH);
-   } else if (cmd == 'l') {
-      digitalWrite(13, LOW);
-   } else if (cmd == 'O') {
-      Serial.print(occupancy); 
-   } else if (cmd == 'M') {
-          for (pos = 0; pos <= 180000000; pos += 1) { // goes from 0 degrees to 180 degrees
-    // in steps of 1 degree
-         myservo.write(popo);              // tell servo to go to position in variable 'pos'
-  }
-        delay(400);
-   }else if(cmd == 'S'){
-    myservo.write(popo);
-    }
-    }
+     if (cmd == 'o') {
+        Serial.print(occupancy);
+        } 
+   }
     
     if (!entered) {
       distance1 = ultrasonicDistance(trig1, echo1);
@@ -118,8 +94,7 @@ void loop() {
       }
       entered = false;
       exited = false;
-      enterTime = millis();
-      exitTime = millis();
+      delay(1000);
     }
 
     prev1 = FIRout1;
@@ -131,11 +106,7 @@ void loop() {
     if (millis() - exitTime > 20000) {
       exited = false;
     }
-
-  }
-
 }
-
 
 
 void fallEdge1(long FIRout1, long prev1) {
